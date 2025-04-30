@@ -96,7 +96,7 @@ def write_to_postgres(batch_df, batch_id):
         result_df.write \
             .format("jdbc") \
             .option("url", f"jdbc:postgresql://postgres:5432/{POSTGRES_DB}") \
-            .option("dbtable", "bloom_sports_tweets") \
+            .option("dbtable", "bloom_filter") \
             .option("user", POSTGRES_USER) \
             .option("password", POSTGRES_PASSWORD) \
             .mode("append") \

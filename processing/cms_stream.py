@@ -100,18 +100,6 @@ def write_to_postgres_with_cms(batch_df, batch_id):
             for keyword in keywords:
                 cms.add(keyword)
         
-        # Save original batch to main table
-        print("\nAttempting to write to twitter_sentiment table...")
-        batch_df.write \
-            .format("jdbc") \
-            .option("url", f"jdbc:postgresql://postgres:5432/{POSTGRES_DB}") \
-            .option("dbtable", 'twitter_sentiment') \
-            .option("user", POSTGRES_USER) \
-            .option("password", POSTGRES_PASSWORD) \
-            .mode("append") \
-            .save()
-        print("Successfully wrote to twitter_sentiment table")
-
         # Save CMS metrics for some example keywords
         example_keywords = ['sports', 'politics', 'tech', 'music', 'news']
         cms_data = [Row(
@@ -124,20 +112,20 @@ def write_to_postgres_with_cms(batch_df, batch_id):
         if cms_data:
             cms_metrics_df = spark.createDataFrame(cms_data)
             
-            # Debug before writing to cms_estimates
-            print("\nMetrics DataFrame to be written to cms_estimates:")
+            # Debug before writing to cms_stream
+            print("\nMetrics DataFrame to be written to cms_stream:")
             cms_metrics_df.show()
             
-            print("\nAttempting to write to cms_estimates table...")
+            print("\nAttempting to write to cms_stream table...")
             cms_metrics_df.write \
                 .format("jdbc") \
                 .option("url", f"jdbc:postgresql://postgres:5432/{POSTGRES_DB}") \
-                .option("dbtable", 'cms_estimates') \
+                .option("dbtable", 'cms_stream') \
                 .option("user", POSTGRES_USER) \
                 .option("password", POSTGRES_PASSWORD) \
                 .mode("append") \
                 .save()
-            print("Successfully wrote to cms_estimates table")
+            print("Successfully wrote to cms_stream table")
         
         print(f"=== Finished processing Batch {batch_id} ===\n")
 

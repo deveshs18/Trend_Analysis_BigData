@@ -93,7 +93,7 @@ def write_to_postgres_with_lsh(batch_df, batch_id):
             similar_df.write \
                 .format("jdbc") \
                 .option("url", f"jdbc:postgresql://postgres:5432/{POSTGRES_DB}") \
-                .option("dbtable", 'lsh_similar_tweets') \
+                .option("dbtable", 'lsh_before_differential_privacy') \
                 .option("user", POSTGRES_USER) \
                 .option("password", POSTGRES_PASSWORD) \
                 .mode("append") \

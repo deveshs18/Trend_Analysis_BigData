@@ -78,47 +78,44 @@ def write_to_postgres(batch_df, batch_id):
     est_unique_count = flajolet_martin_estimate(texts)
     print(f"Calculated Flajolet-Martin estimate: {est_unique_count}")
 
-    # Debug before writing to twitter_sentiment
-    print("\nAttempting to write to twitter_sentiment table...")
-    try:
-        batch_df.write \
-            .format("jdbc") \
-            .option("url", f"jdbc:postgresql://postgres:5432/{POSTGRES_DB}") \
-            .option("dbtable", 'twitter_sentiment') \
-            .option("user", POSTGRES_USER) \
-            .option("password", POSTGRES_PASSWORD) \
-            .mode("append") \
-            .save()
-        print("Successfully wrote to twitter_sentiment table")
-    except Exception as e:
-        print(f"Error writing to twitter_sentiment: {str(e)}")
-
     # Prepare metrics data
     metrics_data = [Row(
         batch_id=batch_id,
         timestamp=datetime.utcnow(),
-        fm_estimate=est_unique_count
+        set_name="tweets",
+        estimated_cardinality=est_unique_count
     )]
     
     metrics_df = spark.createDataFrame(metrics_data)
     
-    # Debug before writing to fm_estimates
-    print("\nMetrics DataFrame to be written to fm_estimates:")
+    # Debug before writing to flajolent_stream
+    print("\nMetrics DataFrame to be written to flajolent_stream:")
     metrics_df.show()
     
-    print("\nAttempting to write to fm_estimates table...")
+    print("\nAttempting to write to flajolent_stream table...")
     try:
         metrics_df.write \
             .format("jdbc") \
             .option("url", f"jdbc:postgresql://postgres:5432/{POSTGRES_DB}") \
-            .option("dbtable", 'fm_estimates') \
+            .option("dbtable", 'flajolent_stream') \
             .option("user", POSTGRES_USER) \
             .option("password", POSTGRES_PASSWORD) \
             .mode("append") \
             .save()
-        print("Successfully wrote to fm_estimates table")
+        print("Successfully wrote to flajolent_stream table")
     except Exception as e:
-        print(f"Error writing to fm_estimates: {str(e)}")
+        print(f"Error writing to flajolent_stream: {str(e)}")
+        # Write errors to a separate table
+        error_df = spark.createDataFrame([(batch_id, str(e), datetime.now())], 
+                                       ["batch_id", "error", "error_time"])
+        error_df.write \
+            .format("jdbc") \
+            .option("url", f"jdbc:postgresql://postgres:5432/{POSTGRES_DB}") \
+            .option("dbtable", 'processing_errors') \
+            .option("user", POSTGRES_USER) \
+            .option("password", POSTGRES_PASSWORD) \
+            .mode("append") \
+            .save()
     
     print(f"=== Finished processing Batch {batch_id} ===\n")
 
